@@ -11,6 +11,24 @@ A robust, enterprise-grade PowerShell toolkit for automated **cross-tenant Micro
 
 ---
 
+## Contents
+
+- [Key Highlights](#key-highlights)
+- [Architecture & Migration Workflow](#architecture--migration-workflow)
+- [Repository Structure](#repository-structure)
+- [Prerequisites](#prerequisites)
+- [Configuration](#configuration)
+- [Execution Guide](#execution-guide)
+- [Rollback & Recovery](#rollback--recovery)
+- [Limitations & Expectations](#limitations--expectations)
+- [Utility Scripts](#utility-scripts)
+- [Time & Limits](#time--limits)
+- [Security & Operational Safeguards](#security--operational-safeguards)
+- [Contributing](#contributing)
+- [License](#license)
+
+---
+
 ## Key Highlights
 
 - **End-to-End Automation**: Covers the entire migration lifecycle from tenant discovery to post-migration storage optimization and user notifications.
@@ -305,6 +323,29 @@ Never put `-PermanentDelete` in the routine Step 5 commands above, and never pas
 
 ---
 
+## Rollback & Recovery
+
+- `Remove-CreatedUsers.ps1` — removes accounts provisioned by this migration.
+- `Restore-DeletedUsers.ps1` — recovers soft-deleted accounts.
+- `Grant-OneDriveAdminAccess.ps1` — grants admin access to source OneDrive
+  sites (source tenant; compare with `3b`, which targets the destination).
+
+Always validate first (`5-Validate.ps1`) before any destructive step.
+
+---
+
+## Limitations & Expectations
+
+- OneDrive site provisioning takes minutes to hours after the request;
+  do not treat an immediate check as final.
+- Graph API throttling applies on large tenants; the scripts retry with
+  backoff, but large migrations still take time — no fixed duration is
+  promised here.
+- This toolkit is validated for the flows documented above; run it in a
+  test tenant before production use.
+
+---
+
 ## Utility Scripts (source vs destination)
 
 These are standalone helpers, not part of the numbered pipeline:
@@ -346,6 +387,13 @@ Rollback only covers **accounts**. Migrated files are not rolled back by these s
 - **Non-Destructive Defaults**: Purge scripts (`5b`, `5c`, `5d`) prompt for confirmation before deleting anything (ConfirmImpact High; `-WhatIf` previews without deleting). Even after confirmation, they refuse to run unless a recent passing `5-Validate.ps1` result exists (validation gate, max 24 hours old). Deleted files go to the OneDrive recycle bin (recoverable for 93 days); only the separate `-PermanentDelete` step bypasses the recycle bin, and it is never on by default. Version cleanup in the rclone engine is likewise opt-in (`-EnableVersionCleanup`).
 - **Announcement Protection**: Notice files (`.CHU_Y.txt`, `CHU_Y.txt`) and directory structures are strictly protected from purge logic.
 - **Transient Failure Resilience**: Built-in exponential backoff automatically handles HTTP `429 Too Many Requests` and network socket drops.
+
+---
+
+## Contributing
+
+Issues and pull requests are welcome. Please describe the problem or change
+clearly, keep changes focused, and include test evidence where applicable.
 
 ---
 
