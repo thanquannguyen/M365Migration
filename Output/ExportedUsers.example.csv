@@ -1,0 +1,3 @@
+"Id","UserPrincipalName","DisplayName","GivenName","Surname","Mail","JobTitle","Department","UsageLocation","AccountEnabled"
+"00000000-0000-0000-0000-000000000001","user1@source.onmicrosoft.com","User One","User","One","user1@source.onmicrosoft.com","Staff","IT","US","True"
+"00000000-0000-0000-0000-000000000002","user2@source.onmicrosoft.com","User Two","User","Two","user2@source.onmicrosoft.com","Manager","Operations","US","True"

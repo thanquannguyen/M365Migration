@@ -1,0 +1,59 @@
+# ==============================================================================
+# Microsoft 365 Migration Toolkit - Git Ignore
+# ==============================================================================
+
+# --- Configuration & Sensitive Credentials ---
+# DO NOT commit production configuration containing Client Secrets or Passwords!
+MigrationConfig.psd1
+*.local.psd1
+.env
+.env.local
+.env.*.local
+secrets/
+*.key
+*.pem
+*.pfx
+*.cer
+
+# --- Runtime Logs ---
+Logs/
+*.log
+*.log.*
+Logs.zip
+
+# --- Output Reports & User Lists (Contains PII and Passwords) ---
+Output/*
+!Output/.gitkeep
+!Output/*.example.csv
+!Output/*.template.csv
+
+# --- Migration Staging & Temporary Cache ---
+MigrationStaging/
+temp/
+tmp/
+*.tmp
+*.bak
+
+# --- Scratch & Debugging Scripts ---
+scratch/
+test_*.ps1
+check_*.ps1
+
+# --- Operating System & Editor Artifacts ---
+.DS_Store
+Thumbs.db
+ehthumbs.db
+[Dd]esktop.ini
+
+# IDEs & Editors
+.vscode/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# --- PowerShell Temporary Files ---
+*.format.ps1xml.tmp
+.IdentityService/
+.azure/
