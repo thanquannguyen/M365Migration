@@ -7,8 +7,9 @@ When Request-SPOPersonalSite creates a user's MySite, the default Documents libr
 This script uses Microsoft Graph API (POST /sites/{site-id}/lists with template='documentLibrary') to synchronously create the Documents library on every user's personal site.
 Once created, 4b-UploadWorker.ps1 can immediately upload files to /users/{upn}/drive/root without waiting!
 
-Requires (minimum scopes): Microsoft Graph delegated scopes Sites.Manage.All and
-Files.ReadWrite.All (Connect-MgGraph, Invoke-MgGraphRequest).
+Requires (minimum scopes): Microsoft Graph delegated scopes Sites.Manage.All,
+Files.ReadWrite.All and Organization.Read.All (Connect-MgGraph,
+Invoke-MgGraphRequest). Organization.Read.All is needed by the tenant check.
 #>
 
 [CmdletBinding()]
@@ -48,7 +49,7 @@ Write-Host "A browser window or Device Code prompt will appear. Sign in with you
 
 try {
     Disconnect-MgGraph -ErrorAction SilentlyContinue | Out-Null
-    Connect-MgGraph -Scopes "Sites.Manage.All","Files.ReadWrite.All" -TenantId $tenantDomain -UseDeviceCode -NoWelcome -ErrorAction Stop
+    Connect-MgGraph -Scopes "Sites.Manage.All","Files.ReadWrite.All","Organization.Read.All" -TenantId $tenantDomain -UseDeviceCode -NoWelcome -ErrorAction Stop
     Assert-Tenant -ExpectedTenantDomain $tenantDomain
     Write-Host "Connected to Microsoft Graph successfully!" -ForegroundColor Green
 } catch {

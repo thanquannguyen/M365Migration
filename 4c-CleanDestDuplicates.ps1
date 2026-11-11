@@ -57,7 +57,7 @@ try {
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
 Set-Location -Path $ScriptDir
 
-# ── Setup Logging ──────────────────────────────────────────────────────────────
+# -- Setup Logging --------------------------------------------------------------
 $LogDir = Join-Path -Path $ScriptDir -ChildPath 'Logs'
 if (-not (Test-Path -Path $LogDir)) { New-Item -ItemType Directory -Path $LogDir -Force | Out-Null }
 $Timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
@@ -71,7 +71,7 @@ function Write-Log {
     Write-Host $LogMessage -ForegroundColor $Color
 }
 
-# ── Banner ─────────────────────────────────────────────────────────────────────
+# -- Banner ---------------------------------------------------------------------
 $Mode = if ($AutoClean) { "AUTO-CLEAN MODE (duplicates WILL be deleted)" } else { "SCAN-ONLY MODE (read-only, no changes)" }
 Write-Host ""
 Write-Host "==========================================================" -ForegroundColor Cyan
@@ -80,7 +80,7 @@ Write-Host "   $Mode" -ForegroundColor $(if ($AutoClean) { "Red" } else { "Green
 Write-Host "==========================================================" -ForegroundColor Cyan
 Write-Host ""
 
-# ── Load Config ────────────────────────────────────────────────────────────────
+# -- Load Config ----------------------------------------------------------------
 if (-not (Test-Path $ConfigPath)) {
     $ConfigPath = Join-Path $ScriptDir 'MigrationConfig.psd1'
 }
@@ -97,7 +97,7 @@ $TenantDomain = Get-RequiredConfigValue -Value $config.DestTenantDomain -Name 'D
 
 Write-Log "Config loaded. Destination tenant: $TenantDomain"
 
-# ── Load User Mapping ──────────────────────────────────────────────────────────
+# -- Load User Mapping ----------------------------------------------------------
 if (-not (Test-Path $MappingPath)) {
     Write-Log "Mapping file not found at $MappingPath" "Red"
     exit
@@ -119,7 +119,7 @@ if ($Mapping.Count -eq 0) {
 
 Write-Log "Processing $($Mapping.Count) user(s)"
 
-# ── Multi-account parallel orchestration via background jobs ───────────────────
+# -- Multi-account parallel orchestration via background jobs -------------------
 $MaxConcurrentUsers = if ($null -ne $config.MaxConcurrentUsers -and $config.MaxConcurrentUsers -gt 0) { [int]$config.MaxConcurrentUsers } else { 4 }
 $MaxConcurrentUsers = [Math]::Min($MaxConcurrentUsers, $Mapping.Count)
 
@@ -242,7 +242,7 @@ if (-not $isFilter -and $Mapping.Count -gt 1) {
     return
 }
 
-# ── Token Cache ────────────────────────────────────────────────────────────────
+# -- Token Cache ----------------------------------------------------------------
 $TokenCache = @{}
 
 function Get-UserGraphToken {
@@ -276,7 +276,7 @@ function Get-UserGraphToken {
     return $token
 }
 
-# ── Graph API Helper with auto token refresh ──────────────────────────────────
+# -- Graph API Helper with auto token refresh ----------------------------------
 function Invoke-GraphRequest {
     param (
         [string]$UPN,
@@ -305,7 +305,7 @@ function Invoke-GraphRequest {
     }
 }
 
-# ── Scan Drive Items via Delta API ─────────────────────────────────────────────
+# -- Scan Drive Items via Delta API ---------------------------------------------
 function Get-AllDriveItems {
     param (
         [string]$UPN,
@@ -382,7 +382,7 @@ function Get-AllDriveItems {
     return $items
 }
 
-# ── Duplicate Detection ───────────────────────────────────────────────────────
+# -- Duplicate Detection -------------------------------------------------------
 function Find-Duplicates {
     param (
         [System.Collections.Generic.List[PSCustomObject]]$Items
@@ -400,7 +400,7 @@ function Find-Duplicates {
         $folderIndex[$key].Add($item)
     }
 
-    # ── Strategy A: Conflict-renamed duplicates ────────────────────────────────
+    # -- Strategy A: Conflict-renamed duplicates --------------------------------
     # Pattern: "filename (1).ext", "report (2).docx", "photo (3).jpg"
     $conflictPattern = '^(.+?)\s+\(\d+\)(\.[^.]+)?$'
 
@@ -440,7 +440,7 @@ function Find-Duplicates {
     return $duplicates
 }
 
-# ── Format file size for display ───────────────────────────────────────────────
+# -- Format file size for display -----------------------------------------------
 function Format-FileSize {
     param ([long]$Bytes)
     if ($Bytes -ge 1GB) { return "{0:N2} GB" -f ($Bytes / 1GB) }
@@ -449,9 +449,9 @@ function Format-FileSize {
     return "$Bytes B"
 }
 
-# ══════════════════════════════════════════════════════════════════════════════
+# ==============================================================================
 #  MAIN PROCESSING LOOP
-# ══════════════════════════════════════════════════════════════════════════════
+# ==============================================================================
 
 $OutputDir = Join-Path -Path $ScriptDir -ChildPath 'Output'
 if (-not (Test-Path $OutputDir)) { New-Item -ItemType Directory -Path $OutputDir -Force | Out-Null }
@@ -466,7 +466,7 @@ foreach ($User in $Mapping) {
     $SourceUPN = $User.SourceUPN
 
     Write-Host ""
-    Write-Host "──────────────────────────────────────────────────────────" -ForegroundColor DarkGray
+    Write-Host "----------------------------------------------------------" -ForegroundColor DarkGray
     Write-Log "Processing user: $DestUPN"
 
     # Assert the destination UPN belongs to this migration's dest tenant
@@ -479,7 +479,7 @@ foreach ($User in $Mapping) {
         continue
     }
 
-    # ── Step 1: Authenticate ───────────────────────────────────────────────────
+    # -- Step 1: Authenticate ---------------------------------------------------
     try {
         $token = Get-UserGraphToken -UPN $DestUPN
         if (-not $token) {
@@ -494,7 +494,7 @@ foreach ($User in $Mapping) {
         continue
     }
 
-    # ── Step 2: Get DriveId ────────────────────────────────────────────────────
+    # -- Step 2: Get DriveId ----------------------------------------------------
     # App-only token: /users/{UPN}/drives, never the per-user me endpoint.
     $escapedDestUpn = [System.Uri]::EscapeDataString($DestUPN)
     $DriveId = $null
@@ -526,7 +526,7 @@ foreach ($User in $Mapping) {
     }
     Write-Log "  DriveId: $DriveId"
 
-    # ── Step 3: Scan all files via Delta API ───────────────────────────────────
+    # -- Step 3: Scan all files via Delta API -----------------------------------
     Write-Log "  Scanning files via Delta API..."
     try {
         $items = Get-AllDriveItems -UPN $DestUPN -DriveId $DriveId
@@ -545,7 +545,7 @@ foreach ($User in $Mapping) {
         continue
     }
 
-    # ── Step 4: Detect duplicates ──────────────────────────────────────────────
+    # -- Step 4: Detect duplicates ----------------------------------------------
     Write-Log "  Analyzing for duplicates..."
     $userDuplicates = Find-Duplicates -Items $items
 
@@ -581,7 +581,7 @@ foreach ($User in $Mapping) {
         })
     }
 
-    # ── Step 5: Clean duplicates (if -AutoClean) ───────────────────────────────
+    # -- Step 5: Clean duplicates (if -AutoClean) -------------------------------
     if ($AutoClean) {
         Write-Log "  Cleaning $($userDuplicates.Count) duplicate(s)..." "Red"
         $deletedCount = 0
@@ -632,9 +632,9 @@ foreach ($User in $Mapping) {
     $TotalUsersProcessed++
 }
 
-# ══════════════════════════════════════════════════════════════════════════════
+# ==============================================================================
 #  SUMMARY & REPORT
-# ══════════════════════════════════════════════════════════════════════════════
+# ==============================================================================
 
 Write-Host ""
 Write-Host "==========================================================" -ForegroundColor Cyan

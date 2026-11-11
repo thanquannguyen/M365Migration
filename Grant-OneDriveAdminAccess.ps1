@@ -7,7 +7,7 @@ OneDrive sites in UserMapping.csv.
 SOURCE tenant only, via the SharePoint Online Management Shell module
 (Connect-SPOService / Set-SPOUser). This is NOT the destination-tenant script:
 3b-GrantDestOneDriveAdminAccess.ps1 grants the same kind of access on the
-destination tenant's OneDrive sites. Do not confuse the two — running this
+destination tenant's OneDrive sites. Do not confuse the two -- running this
 script against the wrong tenant grants admin access on the wrong tenant's sites.
 
 By default this script does NOT change any storage quota. Changing quotas is
@@ -35,7 +35,7 @@ $ErrorActionPreference = "Stop"
 $InformationPreference = "Continue"
 
 if ($SetStorageQuota) {
-    Write-Host "WARNING: -SetStorageQuota was passed. This script will change the storage quota of every source OneDrive site it touches to 102400 MB (warning level 92160 MB) and reset the quota. This changes tenant storage policy — only continue if you really intend to change quotas." -ForegroundColor Red
+    Write-Host "WARNING: -SetStorageQuota was passed. This script will change the storage quota of every source OneDrive site it touches to 102400 MB (warning level 92160 MB) and reset the quota. This changes tenant storage policy -- only continue if you really intend to change quotas." -ForegroundColor Red
 }
 
 # Load Config

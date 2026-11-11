@@ -224,7 +224,7 @@ $Phase3Action = {
 $Phase3Result = Run-Phase -PhaseId 3 -ScriptName "3-AssignLicenses.ps1" -PromptMsg $Phase3Prompt -PostAction $Phase3Action
 if (-not $Phase3Result) { exit }
 
-# Phase 3a / 3b / 3c — OneDrive provisioning
+# Phase 3a / 3b / 3c -- OneDrive provisioning
 if (-not $SkipOneDrive) {
     $Phase3aResult = Run-Phase -PhaseId '3a' -ScriptName "3a-ProvisionOneDriveSites.ps1" -PromptMsg "OneDrive sites provisioned. Continue to grant admin access to destination sites? (Y/N)"
     if (-not $Phase3aResult) { exit }
@@ -238,7 +238,7 @@ if (-not $SkipOneDrive) {
     Write-Log "Skipping Phases 3a/3b/3c (OneDrive provisioning) due to -SkipOneDrive switch." "Yellow"
 }
 
-# Phase 4 — data migration (Graph engine by default, rclone engine with -UseRcloneEngine)
+# Phase 4 -- data migration (Graph engine by default, rclone engine with -UseRcloneEngine)
 if (-not $SkipOneDrive) {
     $Phase4Script = if ($UseRcloneEngine) { "6-RcloneMigration.ps1" } else { "4-MigrateOneDrive.ps1" }
     $Phase4Engine = if ($UseRcloneEngine) { "rclone (6-RcloneMigration.ps1)" } else { "Graph (4-MigrateOneDrive.ps1)" }
@@ -260,32 +260,32 @@ if (-not $SkipOneDrive) {
 $Phase5Result = Run-Phase -PhaseId 5 -ScriptName "5-Validate.ps1" -PromptMsg "Validation complete. Continue to post announcements? (Y/N)"
 if (-not $Phase5Result) { exit }
 
-# Phase 5a — announcements
+# Phase 5a -- announcements
 $Phase5aResult = Run-Phase -PhaseId '5a' -ScriptName "5a-Announcement.ps1" -PromptMsg "Announcements posted. Continue to purge source data? (Y/N)"
 if (-not $Phase5aResult) { exit }
 
-# Phase 5b — DESTRUCTIVE: full source purge (files go to the recycle bin).
+# Phase 5b -- DESTRUCTIVE: full source purge (files go to the recycle bin).
 $Phase5bResult = Run-Phase -PhaseId '5b' -ScriptName "5b-PurgeSource.ps1" `
     -PrePrompt "DESTRUCTIVE PHASE 5b: this deletes ALL files on source OneDrives (except announcements; deleted files go to the recycle bin, recoverable for 93 days). The validation gate must have passed. Really run the full source purge now? (Y/N)" `
     -ExtraArgs @{ Confirm = $true } `
     -PromptMsg "Full source purge complete. Continue to partial purge? (Y/N)"
 if (-not $Phase5bResult) { exit }
 
-# Phase 5c — DESTRUCTIVE: partial source purge (quota-driven; files go to the recycle bin unless -PermanentDelete, which this orchestrator never passes).
+# Phase 5c -- DESTRUCTIVE: partial source purge (quota-driven; files go to the recycle bin unless -PermanentDelete, which this orchestrator never passes).
 $Phase5cResult = Run-Phase -PhaseId '5c' -ScriptName "5c-PartialPurgeSource.ps1" `
     -PrePrompt "DESTRUCTIVE PHASE 5c: this deletes old files on source OneDrives (deleted files go to the recycle bin; permanent delete is NOT used here). The validation gate must have passed. Really run the partial source purge now? (Y/N)" `
     -ExtraArgs @{ Confirm = $true } `
     -PromptMsg "Partial source purge complete. Continue to empty recycle bins? (Y/N)"
 if (-not $Phase5cResult) { exit }
 
-# Phase 5d — DESTRUCTIVE: permanently empties OneDrive recycle bins (unrecoverable).
+# Phase 5d -- DESTRUCTIVE: permanently empties OneDrive recycle bins (unrecoverable).
 $Phase5dResult = Run-Phase -PhaseId '5d' -ScriptName "5d-EmptyRecycleBin.ps1" `
     -PrePrompt "DESTRUCTIVE PHASE 5d: this PERMANENTLY empties OneDrive recycle bins. Items deleted here CANNOT be recovered. The validation gate must have passed. Really empty the recycle bins now? (Y/N)" `
     -ExtraArgs @{ Confirm = $true } `
     -PromptMsg "Recycle bins emptied. Continue to rename announcements? (Y/N)"
 if (-not $Phase5dResult) { exit }
 
-# Phase 5e — rename announcements to .CHU_Y.txt
+# Phase 5e -- rename announcements to .CHU_Y.txt
 $Phase5eResult = Run-Phase -PhaseId '5e' -ScriptName "5e-RenameAnnouncement.ps1" -PromptMsg ""
 if (-not $Phase5eResult) { exit }
 
