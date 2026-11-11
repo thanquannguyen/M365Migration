@@ -10,8 +10,10 @@
     ShouldProcess.
 
     Requires (minimum scopes): Microsoft Graph delegated scopes
-    User.ReadWrite.All and Directory.ReadWrite.All (Connect-MgGraph,
-    Get-MgDirectoryDeletedItemAsUser, Restore-MgDirectoryDeletedItem).
+    User.ReadWrite.All, Directory.ReadWrite.All and Organization.Read.All
+    (Connect-MgGraph, Get-MgDirectoryDeletedItemAsUser,
+    Restore-MgDirectoryDeletedItem). Organization.Read.All is needed by the
+    tenant check.
 .EXAMPLE
     .\Restore-DeletedUsers.ps1 -UserFilter "tomytra"
 .EXAMPLE
@@ -38,9 +40,9 @@ $config = Import-PowerShellDataFile -Path $ConfigPath
 $sourceTenantDomain = Get-RequiredConfigValue -Value $config.SourceTenantDomain -Name 'SourceTenantDomain'
 
 Write-Host "[STEP 1] Connecting to Microsoft Graph (Directory.ReadWrite.All)..." -ForegroundColor Yellow
-Connect-MgGraph -Scopes @('User.ReadWrite.All', 'Directory.ReadWrite.All') -TenantId $sourceTenantDomain -NoWelcome -ErrorAction SilentlyContinue
+Connect-MgGraph -Scopes @('User.ReadWrite.All', 'Directory.ReadWrite.All', 'Organization.Read.All') -TenantId $sourceTenantDomain -NoWelcome -ErrorAction SilentlyContinue
 if (-not (Get-MgContext)) {
-    Connect-MgGraph -Scopes @('User.ReadWrite.All', 'Directory.ReadWrite.All') -TenantId $sourceTenantDomain -UseDeviceCode -NoWelcome
+    Connect-MgGraph -Scopes @('User.ReadWrite.All', 'Directory.ReadWrite.All', 'Organization.Read.All') -TenantId $sourceTenantDomain -UseDeviceCode -NoWelcome
 }
 Assert-Tenant -ExpectedTenantDomain $sourceTenantDomain
 Write-Host "Connected as $((Get-MgContext).Account)`n" -ForegroundColor Green

@@ -219,7 +219,7 @@ function Download-DriveItem {
             if (-not $errMsg) { $errMsg = "$_" }
             if ($errMsg.Length -gt 150) { $errMsg = $errMsg.Substring(0, 150) + "..." }
             
-            # Detect permanent failures — no point retrying these.
+            # Detect permanent failures -- no point retrying these.
             # S11: a 403 is only permanent when there is NO Retry-After header;
             # with Retry-After it is throttling and must be retried.
             $hasRetryAfter = $false

@@ -12,7 +12,8 @@ confirmation prompt, and supports -WhatIf / -Confirm via ShouldProcess.
 
 Requires (minimum scopes): Microsoft Graph delegated scopes User.ReadWrite.All
 and Directory.ReadWrite.All (Remove-MgUser), User.Read.All
-(Get-MgUserLicenseDetail license check) and Files.Read.All (OneDrive data check).
+(Get-MgUserLicenseDetail license check), Files.Read.All (OneDrive data check)
+and Organization.Read.All (tenant check).
 #>
 [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
 param (
@@ -61,7 +62,7 @@ if (-not $WhatIfPreference) {
 
 Write-Host "Connecting to Destination Tenant ($destTenantDomain)..." -ForegroundColor Cyan
 Disconnect-MgGraph -ErrorAction SilentlyContinue
-Connect-MgGraph -Scopes "User.ReadWrite.All", "Directory.ReadWrite.All", "User.Read.All", "Files.Read.All" -TenantId $destTenantDomain -UseDeviceCode -NoWelcome *>&1 | Write-Host
+Connect-MgGraph -Scopes "User.ReadWrite.All", "Directory.ReadWrite.All", "User.Read.All", "Files.Read.All", "Organization.Read.All" -TenantId $destTenantDomain -UseDeviceCode -NoWelcome *>&1 | Write-Host
 Assert-Tenant -ExpectedTenantDomain $destTenantDomain
 
 foreach ($u in $users) {

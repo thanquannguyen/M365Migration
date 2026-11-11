@@ -3,10 +3,12 @@
 Main script to migrate OneDrive files from source tenant to destination tenant.
 
 Requires (minimum Graph scopes): source download - User.Read.All, Files.Read.All,
-Sites.Read.All, Directory.Read.All; destination upload (delegated/device-code
-admin session) - User.Read.All, Files.ReadWrite.All, Sites.ReadWrite.All,
-Directory.Read.All; destination scan (app-only, client credentials) -
-Files.Read.All, User.Read.All.
+Sites.Read.All, Directory.Read.All, Organization.Read.All; destination upload
+(delegated/device-code admin session) - User.Read.All, Files.ReadWrite.All,
+Sites.ReadWrite.All, Directory.Read.All, Organization.Read.All; destination
+scan (app-only, client credentials) - Files.Read.All, User.Read.All.
+Organization.Read.All is needed by the tenant check (Assert-Tenant); on the
+app-only paths the app registration must grant it as an Application permission.
 #>
 
 [CmdletBinding()]
@@ -101,7 +103,7 @@ if (-not $isFilter -and $Mapping.Count -gt 0) {
     Write-Host "[STEP 1] Authenticating with Source Tenant before launching parallel threads..." -ForegroundColor Yellow
     $env:AZURE_IDENTITY_DISABLE_WAM = 'true'
     $sourceTenantId = $config.SourceTenantDomain
-    $sourceScopes = @('User.Read.All', 'Files.Read.All', 'Sites.Read.All', 'Directory.Read.All')
+    $sourceScopes = @('User.Read.All', 'Files.Read.All', 'Sites.Read.All', 'Directory.Read.All', 'Organization.Read.All')
     Connect-MgGraph -Scopes $sourceScopes -NoWelcome -ErrorAction SilentlyContinue
     if (-not (Get-MgContext)) {
         if ($sourceTenantId) {
@@ -291,7 +293,7 @@ if (-not $SkipDownload) {
     $env:AZURE_IDENTITY_DISABLE_INTERACTIVE_AUTH = 'true'
     try { Set-MgGraphOption -DisableLoginByWAM $true -ErrorAction SilentlyContinue } catch {}
     $sourceTenantId = $config.SourceTenantDomain
-    $sourceScopes = @('User.Read.All', 'Files.Read.All', 'Sites.Read.All', 'Directory.Read.All')
+    $sourceScopes = @('User.Read.All', 'Files.Read.All', 'Sites.Read.All', 'Directory.Read.All', 'Organization.Read.All')
     
     # Resilient non-interactive token cache connect (retries to avoid MSAL token file lock contention across parallel jobs)
     for ($attempt = 1; $attempt -le 5; $attempt++) {
@@ -473,7 +475,7 @@ if (-not $SkipUpload) {
     Write-Log "CONNECTING TO DESTINATION TENANT FOR UPLOAD PHASE..."
     Write-Log "A device code will appear below. Go to https://microsoft.com/devicelogin and enter it." -Type WARN
     Write-Log "Sign in with your DESTINATION tenant admin account." -Type WARN
-    $destScopes = @('User.Read.All', 'Files.ReadWrite.All', 'Sites.ReadWrite.All', 'Directory.Read.All')
+    $destScopes = @('User.Read.All', 'Files.ReadWrite.All', 'Sites.ReadWrite.All', 'Directory.Read.All', 'Organization.Read.All')
     $destTenantId = $config.DestTenantDomain
     if ($destTenantId) {
         Connect-MgGraph -Scopes $destScopes -TenantId $destTenantId -UseDeviceCode -NoWelcome *>&1 | Write-Host

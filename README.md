@@ -95,6 +95,7 @@ M365Migration/
 ├── .gitattributes                     # Line-ending normalization rules
 ├── MigrationConfig.template.psd1      # Master PowerShell configuration template
 ├── MigrationHelpers.ps1               # Shared safety helpers (required config values, tenant assert, validation gate, retry)
+├── AnnouncementHelpers.ps1            # Shared announcement template + upload logic (used by 5a and 5c)
 ├── README.md                          # Comprehensive documentation
 ├── LICENSE                            # MIT License
 │
@@ -155,21 +156,22 @@ To allow non-interactive app-only automation, register an Application in Microso
 | Microsoft Graph | `Files.ReadWrite.All` | Application | Read/write access to all OneDrive files |
 | Microsoft Graph | `Sites.FullControl.All`| Application | Manage SharePoint/OneDrive sites & recycle bin |
 | Microsoft Graph | `Directory.ReadWrite.All` | Application | Read directory metadata, manage groups |
+| Microsoft Graph | `Organization.Read.All` | Application | Tenant check (Assert-Tenant) on app-only flows (4, 5c, 5d) |
 
 **B. Delegated scopes** — requested at interactive/device-code sign-in by the scripts that log in as an admin. Only the scopes below are actually requested anywhere in the tree (checked against every `Connect-MgGraph -Scopes` call):
 
 | Scope | Requested by |
 | :--- | :--- |
-| `User.Read.All` | 0 (source), 1, 4 (source), 5, 5a, 5b, 5c, 5d |
-| `Directory.Read.All` | 0 (source), 1, 4 (source), 5, 5a, 5b, 5c |
-| `Files.Read.All` | 0 (source), 4 (source), 5 |
+| `User.Read.All` | 0 (source), 1, 4 (source), 5, 5a, 5b, 5c, 5d, Remove-CreatedUsers |
+| `Directory.Read.All` | 0 (source), 1, 4 (source), 5, 5a, 5b, 5c, 5d |
+| `Files.Read.All` | 0 (source), 4 (source), 5, Remove-CreatedUsers |
 | `Sites.Read.All` | 0 (source), 4 (source), 5 |
 | `User.ReadWrite.All` | 0 (destination), 2, 3, Remove-CreatedUsers, Restore-DeletedUsers |
 | `Directory.ReadWrite.All` | 0 (destination), 2, Remove-CreatedUsers, Restore-DeletedUsers |
 | `Files.ReadWrite.All` | 0 (destination), 3c, 4 (destination), 5a, 5b, 5c, 5d |
 | `Sites.ReadWrite.All` | 0 (destination), 4 (destination), 5a, 5b, 5c, 5d |
 | `Sites.Manage.All` | 3c only (initializes document libraries) |
-| `Organization.Read.All` | 0 (destination), 3, 5 |
+| `Organization.Read.All` | 0 (destination), 1, 2, 3, 3c, 4 (source), 4 (destination), 5, 5b, 5c, 5d, Remove-CreatedUsers, Restore-DeletedUsers |
 
 > **Note:** `3a`, `3b`, and `Grant-OneDriveAdminAccess.ps1` do not use Graph scopes at all — they use the SharePoint Online Management Shell (`Connect-SPOService`), so they need a SharePoint admin account instead. If a script ever requests a scope not listed above, that is drift: update this table, do not silently widen it.
 
